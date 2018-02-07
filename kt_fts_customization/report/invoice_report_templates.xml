@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report 
+            id="account.account_invoices"
+            model="account.invoice"
+            string="Invoices"
+            report_type="qweb-pdf"
+            name="account.report_invoice"
+            file="account.report_invoice"
+	    attachment_use="True"
+            attachment=""
+      />
+        <!--    attachment_use="True"
+            attachment="(object.state in ('open','paid')) and ('INV'+(object.number or '').replace('/','')+'.pdf')"
+        />-->
+
+    <template id="sale.report_invoice_document_inherit_sale" inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@name='invoice_address']" position="attributes">
+            <attribute name="groups">!sale.group_delivery_invoice_address</attribute>
+        </xpath>
+        <xpath expr="//div/h2/span[3]" position="replace">
+            <span t-if="o.type == 'out_invoice' and o.state == 'draft'">Proforma Invoice</span>
+        </xpath>
+        <xpath expr="//div/h2/span" position="before">
+            <span t-if="o.type == 'out_invoice' and (o.state == 'open' or o.state == 'paid')">Tax </span>
+        </xpath>
+        <xpath expr="//div[@name='invoice_address']" position="before">
+            <div class="col-xs-5 col-xs-offset-7" groups="sale.group_delivery_invoice_address">
+		<table><tr><td><![CDATA[&nbsp;]]></td></tr></table>
+                <strong t-if="o.partner_shipping_id == o.partner_id">Invoicing and shipping address:</strong>
+                <strong t-if="o.partner_shipping_id != o.partner_id">Invoicing address:</strong>
+                <div t-field="o.partner_id"
+                    t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                <span t-if="o.partner_id.vat_no">VAT No: <span t-field="o.partner_id.vat_no"/></span>
+                <div t-if="o.partner_shipping_id != o.partner_id" class="mt8">
+                    <strong>Shipping address:</strong>
+                    <div t-field="o.partner_shipping_id"
+                        t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": True}'/>
+                    <span t-if="o.partner_id.vat_no">VAT NO: <span t-field="o.partner_id.vat_no"/></span>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="report_invoice_document_inherit_kt_fts" inherit_id="account.report_invoice_document">
+        <xpath expr="//div[@class='page']/div[2]/div[1]" position="replace">
+            <div class="col-xs-4" t-if="o.name">
+                    <strong>Customer Reference:</strong>
+                    <p t-field="o.name"/>
+            </div>
+        </xpath>
+	<xpath expr="//div[@class='page']" position="inside">
+            <br/><strong>Key Notes : </strong><br/>
+            <p t-field="o.description"/>
+        </xpath>
+    </template>
+
+
+</odoo>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data noupdate="0">
+
+        <record id="payment_acquirer_payu_com" model="payment.acquirer">
+            <field name="name">PayU</field>
+            <field name="provider">payu_com</field>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="view_template_id" ref="payu_acquirer_button"/>
+	    <!--<field name="view_template_id" ref="payment.default_acquirer_button"/>-->
+            <field name="environment">test</field>
+            <field name="pre_msg"><![CDATA[
+<p>You will be redirected to the Payu payment website after cliking on the payment button.</p>]]></field>
+            <field name="payu_email_account">dummy</field>
+            <field name="payu_seller_account">dummy</field>
+            <field name="payu_api_username">dummy</field>
+            <field name="payu_api_password">dummy</field>
+	    <field name="image" type="base64" file="payment_payu_com/static/src/img/payu_com_icon.png"/>
+            <field name="module_id" ref="base.module_payment_payu_com"/>
+	    <field name="description" type="html">
+            <p>
+
+            </p>
+            <ul class="list-inline">
+                <li><i class="fa fa-check"/>eCommerce</li>
+                <li><i class="fa fa-check"/>Subscription</li>
+                <li><i class="fa fa-check"/>Pay button in emails</li>
+            </ul>
+        </field>
+        </record>
+
+    </data>
+</openerp>
+

@@ -1,0 +1,14 @@
+<odoo>
+    <record id="view_purchase_configuration_inherit" model="ir.ui.view">
+	<field name="name">view.purchase.configuration.inherit</field>
+	<field name="model">purchase.config.settings</field>
+	<field name="inherit_id" ref="purchase.view_purchase_configuration"/>
+	<field name="arch" type="xml">
+	    <xpath expr="//form/group[2]" position="after">
+		<group string="Purchases">
+		    <field name="purchase_note"/>
+		</group>
+	    </xpath>
+    	</field>
+    </record>
+</odoo>

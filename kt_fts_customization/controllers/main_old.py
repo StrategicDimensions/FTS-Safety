@@ -1,0 +1,86 @@
+import werkzeug
+
+from odoo import fields, http, _
+from odoo.http import request
+from odoo.addons.website_mail.controllers.main import _message_post_helper
+from odoo.addons.website_quote.controllers.main import sale_quote
+
+class SaleQuote(sale_quote):
+
+    @http.route("/quote/<int:order_id>/<token>", type='http', auth="public", website=True)
+    def view(self, order_id, pdf=None, token=None, message=False, **post):
+        # use sudo to allow accessing/viewing orders for public user
+        # only if he knows the private token
+
+        #Jagadeesh added
+	
+        sale_order_obj = request.env['sale.order'].sudo().browse(order_id)
+	
+        if sale_order_obj.partner_id.account_type == 'account' and sale_order_obj.partner_id.account_blocked:
+           return request.render('kt_fts_customization.account_blocked_template',{'sale_rep':sale_order_obj.user_id.name})
+        elif sale_order_obj.partner_id.account_type == 'account' and sale_order_obj.amount_total > sale_order_obj.partner_id.available_credit_amount:
+           return request.render('kt_fts_customization.credit_limit_template',{'sale_rep':sale_order_obj.user_id.name})
+        else:pass
+        #Jagadeesh end
+        now = fields.Date.today()
+        if token:
+            Order = request.env['sale.order'].sudo().search([('id', '=', order_id), ('access_token', '=', token)])
+            # Log only once a day
+            if Order and request.session.get('view_quote') != now:
+                request.session['view_quote'] = now
+                body = _('Quotation viewed by customer')
+                _message_post_helper(res_model='sale.order', res_id=Order.id, message=body, token=token, token_field="access_token", message_type='notification', subtype="mail.mt_note", partner_ids=Order.user_id.partner_id.ids)
+        else:
+            Order = request.env['sale.order'].search([('id', '=', order_id)])
+
+        if not Order:
+            return request.render('website.404')
+        request.session['sale_order_id'] = Order.id
+
+        days = 0
+        if Order.validity_date:
+            days = (fields.Date.from_string(Order.validity_date) - fields.Date.from_string(fields.Date.today())).days + 1
+        if pdf:
+            pdf = request.env['report'].sudo().with_context(set_viewport_size=True).get_pdf([Order.id], 'website_quote.report_quote')
+            pdfhttpheaders = [('Content-Type', 'application/pdf'), ('Content-Length', len(pdf))]
+            return request.make_response(pdf, headers=pdfhttpheaders)
+        transaction_id = request.session.get('quote_%s_transaction_id' % Order.id)
+        if not transaction_id:
+            Transaction = request.env['payment.transaction'].sudo().search([('reference', '=', Order.name)])
+        else:
+            Transaction = request.env['payment.transaction'].sudo().browse(transaction_id)
+        values = {
+            'quotation': Order,
+            'message': message and int(message) or False,
+            'option': bool(filter(lambda x: not x.line_id, Order.options)),
+            'order_valid': (not Order.validity_date) or (now <= Order.validity_date),
+            'days_valid': days,
+            'action': request.env.ref('sale.action_quotations').id,
+            'breadcrumb': request.env.user.partner_id == Order.partner_id,
+            'tx_id': Transaction.id if Transaction else False,
+            'tx_state': Transaction.state if Transaction else False,
+            'tx_post_msg': Transaction.acquirer_id.post_msg if Transaction else False,
+            'need_payment': Order.invoice_status == 'to invoice' and Transaction.state in ['draft', 'cancel', 'error'],
+            'token': token,
+        }
+
+        if Order.require_payment or values['need_payment']:
+            values['acquirers'] = list(request.env['payment.acquirer'].sudo().search([('website_published', '=', True), ('company_id', '=', Order.company_id.id)]))
+            extra_context = {
+                'submit_class': 'btn btn-primary',
+                'submit_txt': _('Pay & Confirm')
+            }
+            values['buttons'] = {}
+            for acquirer in values['acquirers']:
+                values['buttons'][acquirer.id] = acquirer.with_context(**extra_context).render(
+                    '/',
+                    Order.amount_total,
+                    Order.pricelist_id.currency_id.id,
+                    values={
+                        'return_url': '/quote/%s/%s' % (order_id, token) if token else '/quote/%s' % order_id,
+                        'type': 'form',
+                        'alias_usage': _('If we store your payment information on our server, subscription payments will be made automatically.'),
+                        'partner_id': Order.partner_id.id,
+                    })
+        return request.render('website_quote.so_quotation', values)
+

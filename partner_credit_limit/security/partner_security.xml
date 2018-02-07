@@ -1,0 +1,14 @@
+<odoo>
+        <record id="account_blocked_security" model="ir.ui.view">
+                <field name="name">account.blocked.security</field>
+                <field name="model">res.partner</field>
+                <field name="inherit_id" ref="partner_credit_limit.view_partner_form_inherit"/>
+                <!--<field name="groups_id" eval="[(6,0,[ref('partner_credit_limit.credit_config')])]"/>-->
+		<field name="groups_id" eval="[(6,0,[ref('partner_credit_limit.account_blocking')])]"/>
+                <field name="arch" type="xml">
+                        <field name="account_blocked"  position="attributes">
+                                <attribute name="readonly">0</attribute>
+                        </field>
+                </field>
+        </record>
+</odoo>

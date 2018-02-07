@@ -1,0 +1,38 @@
+<openerp>
+<data>
+	<record id="crm_case_form_view_leads_inh" model="ir.ui.view">
+		<field name="model">crm.lead</field>
+		<field name="inherit_id" ref="crm.crm_case_form_view_leads"/>
+		<field name="arch" type="xml">
+	
+			<field name="state_id" position="attributes">
+				<attribute name="domain">[('country_id','=',country_id)]</attribute>
+			</field>
+
+			<field name="team_id" position="after">
+				<field name="create_uid" string="Lead Generator" readonly="1"/>
+			</field>
+		
+			<field name="tag_ids" position="after">
+				<field name="product_interest"/>
+			</field>
+			
+			<!-- Jagadeesh added -->
+			<xpath expr="//group[@name='categorization']" position="replace">
+			        <group string="Tracking" name="categorization">
+                                    <field name="company_id" groups="base.group_multi_company" options="{'no_create': True}"/>
+                                    <field name="campaign_id"/>
+                                    <field name="medium_id"/>
+                                    <field name="source_id"/>
+                                    <field name="referred"/>
+                                </group>
+			</xpath>
+			<!-- Jagadeesh end -->
+			<field name="source_id" position="after">
+				<field name="source_name" invisible="1"/>
+				<field name="other_desc" placeholder="Please Describe Other..." attrs="{'invisible':[('source_name','!=','Other')]}"/>
+			</field>
+		</field>
+	</record>
+</data>
+</openerp>

@@ -1,0 +1,12 @@
+<odoo>
+        <record model="res.groups" id="group_fts_allowed_edit">
+            <field name="name">Fts Users allowed to edit</field>
+        </record>
+        <record model="res.groups" id="partner_ledgers">
+            <field name="name">Partner Ledgers</field>
+        </record>
+	<record model="res.groups" id="product_tags">
+            <field name="name">Product Tags</field>
+        </record>
+</odoo>
+

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template_inherit_kt" >
+    <t t-extend="AppSwitcher.Content">
+        <t t-jquery="div.o_application_switcher_footer" t-operation="inner">
+            <img src="/kt_fts_customization/static/src/img/sarissa_logo.png"/>
+        </t>
+    </t>
+</templates>
+

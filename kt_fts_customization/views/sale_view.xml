@@ -1,0 +1,127 @@
+<odoo>
+    <record id="view_order_form_inherit" model="ir.ui.view">
+	<field name="name">view.order.form.inherit</field>
+	<field name="model">sale.order</field>
+	<field name="inherit_id" ref="sale.view_order_form"/>
+	<field name="arch" type="xml">
+	    <field name="client_order_ref" position="replace"></field><!-- Jagadeesh -->
+	    <field name="payment_term_id" position="after">
+		<field name="collection" required="1"/>
+		<field name="ignore_check"/>
+	    </field>
+	    <!-- Jagadeesh start -->
+            <field name="partner_shipping_id" position="after">
+                <field name="client_order_ref"/>
+            </field>
+	    <xpath expr="//sheet/group[1]/group[1]" position="inside">
+                <field name="description"/>
+            </xpath>
+        <xpath expr="//form/header/button[@name='action_cancel']" position="attributes">
+                <attribute name="attrs">{'invisible':[('state','=','cancel')]}</attribute>
+            </xpath>
+            <!-- Jagadeesh end -->
+	</field>
+   </record>
+   <record id="view_picking_form_inherit" model="ir.ui.view">
+	<field name="name">view.picking.form.inherit</field>
+	<field name="model">stock.picking</field>
+	<field name="inherit_id" ref="stock.view_picking_form"/>
+	<field name="arch" type="xml">	
+	    <field name="location_dest_id" position="after">
+		<field name="collection" required="1"/>	
+		<field name="customer_type" readonly="1"/>
+	    </field>
+	    <!--<field name="picking_type_id" position="after">
+                <field name="description"/>
+            </field>-->
+	    <xpath expr="//sheet/group[1]/group[2]" position="inside">
+                <field name="description"/>
+            </xpath>
+	</field>
+   </record>
+
+<!--<record model="res.groups" id="group_fts_allowed_edit">
+            <field name="name">Fts Users allowed to edit</field>
+</record>-->
+
+<record id="view_partner_form_inherit_new" model="ir.ui.view">
+            <field name="name">view.partner.form.inherit2</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="category_id" position="after">
+                    <field name="vat_no" required="1"/>
+                    <field name="comp_reg_number"/>
+                    <field name="allowed_to_edit" invisible="1"/>
+                    <field name="account_type" attrs="{'readonly':[('allowed_to_edit','=',False)]}" required="1"/>
+                    <field name="account_blocked" attrs="{'readonly':[('allowed_to_edit','=',False)]}" readonly="0"/>
+                    <field name="available_credit_amount" attrs="{'invisible': [('parent_id', '!=', False), ('type', 'in', ['contact'])]}"/>
+                </field>
+            </field>
+        </record>
+
+	<record id="view_partner_property_form_inh" model="ir.ui.view">
+            <field name="name">account.view.partner.property.form.inh</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="account.view_partner_property_form"/>
+            <field name="arch" type="xml">
+                <field name="property_payment_term_id" position="attributes">
+                        <attribute name="attrs">{'readonly':[('allowed_to_edit','=',False)]}</attribute>
+                </field>
+            </field>
+        </record>
+
+	<record id="view_credit_readonly_partner_form_inh" model="ir.ui.view">
+            <field name="name">res.partner.partner_credit_limit.form.inh</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="sale_exception_credit_limit.view_credit_readonly_partner_form"/>
+            <field name="arch" type="xml">
+                <field name="credit_limit" position="attributes">
+                        <attribute name="attrs">{'readonly':[('allowed_to_edit','=',False)]}</attribute>
+                </field>
+            </field>
+        </record>
+
+
+        <record id="invoice_form_inherit_kt" model="ir.ui.view">
+            <field name="name">invoice.form.inherit</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_form"/>
+            <field name="arch" type="xml">
+                <!--<xpath expr="//page[2]/group[1]/group[2]" position="inside">
+
+                    <field name="description"/>
+                </xpath>-->
+                <xpath expr="//sheet/group[1]/group[2]" position="inside">
+                    <field name="description"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='invoice_line_ids']/tree/field[@name='currency_id']" position="after">
+                    <field name="margin" groups="base.group_user" invisible="1"/>
+                </xpath>
+                <xpath expr="//notebook/page/field[@name='invoice_line_ids']/tree/field[@name='price_unit']" position="after">
+                    <field name="purchase_price" invisible="0"/>
+                </xpath>
+                <xpath expr="//field[@name='comment']" position="after">
+                    <group name="invoice_margin_grp">
+                        <field name="margin" groups="base.group_user"/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="invoice_supplier_form_inherit" model="ir.ui.view">
+            <field name="name">invoice.supplier.form.inherit</field>
+            <field name="model">account.invoice</field>
+            <field name="inherit_id" ref="account.invoice_supplier_form"/>
+            <field name="arch" type="xml">
+                <field name="date_due" position="after">
+                    <field name="description"/>
+                </field>
+            </field>
+        </record>
+
+
+	<record model="ir.ui.menu" id="account_reports.account_reports_legal_statements_menu">
+            <field name="groups_id" eval="[(6,0,[ref('account.group_account_user'),ref('kt_fts_customization.partner_ledgers')])]"/>
+        </record>
+</odoo>

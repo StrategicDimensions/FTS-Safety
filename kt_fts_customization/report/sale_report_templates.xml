@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="external_layout_header_inherit" inherit_id="report.external_layout_header">
+	<xpath expr="//div[@class='header']/div[1]" position="replace">
+	    <div/>
+        </xpath>
+	<xpath expr="//div[@class='header']/div[2]" position="replace">
+            <div/>
+        </xpath>
+	<xpath expr="//div[@class='header']/div[3]/div" position="after">	
+            <div style="float:right">
+		<img t-if="company.logo" t-att-src="'data:image/png;base64,%s' % company.logo" style="max-height:300px;max-width:300px" />
+	    </div>
+        </xpath>
+	<xpath expr="//div[@name='company_address']" position="inside">
+            <br/><t t-if="company.vat">VAT No: <span t-field="company.vat"/></t>
+        </xpath>
+    </template>
+
+    <template id="report_saleorder_document_inherit" inherit_id="sale.report_saleorder_document">
+	<xpath expr="//div[@class='page']/div[2]/div[1]/strong[1]" position="before">
+	    <table><tr><td><![CDATA[&nbsp;]]></td></tr><tr><td><![CDATA[&nbsp;]]></td></tr></table>
+	</xpath>
+	<xpath expr="//div[@class='page']/div[2]/div[2]/div" position="before">
+            <table><tr><td><![CDATA[&nbsp;]]></td></tr><tr><td><![CDATA[&nbsp;]]></td></tr></table>
+        </xpath>
+	<xpath expr="//div[@id='informations']" position="inside">
+            <div class="col-xs-3">
+                <b>Collection/Delivery</b><p t-field="doc.collection"/>
+            </div>
+        </xpath>
+	<xpath expr="//div[@name='total']" position="after">
+            <br/><strong>Key Notes : </strong><br/>
+            <p t-field="doc.description" />
+        </xpath>
+    </template>
+</odoo>
+

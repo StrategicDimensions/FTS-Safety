@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<odoo>
+        <record id="email_template_edi_invoice_new" model="mail.template">
+            <field name="name">Invoice - Send by Email (New)</field>
+            <field name="email_from">${(object.user_id.email and '%s &lt;%s&gt;' % (object.user_id.name, object.user_id.email) or '')|safe}</field>
+            <field name="subject">${object.company_id.name} Invoice (Ref ${object.number or 'n/a'})</field>
+            <field name="partner_to">${object.partner_id.id}</field>
+            <field name="model_id" ref="account.model_account_invoice"/>
+            <field name="auto_delete" eval="True"/>
+            <field name="report_template" ref="account.account_invoices"/>
+            <field name="report_name">Invoice_${(object.number or '').replace('/','_')}_${object.state == 'draft' and 'draft' or ''}</field>
+            <field name="lang">${object.partner_id.lang}</field>
+            <field name="body_html"><![CDATA[
+<p>Dear ${object.partner_id.name}
+% set access_action = object.get_access_action()
+% set access_url = access_action['type'] == 'ir.actions.act_url' and access_action['url'] or '/report/pdf/account.report_invoice/' + str(object.id)
+% set is_online = access_action and access_action['type'] == 'ir.actions.act_url'
+
+% if object.partner_id.parent_id:
+    (<i>${object.partner_id.parent_id.name}</i>)
+% endif
+,</p>
+<p>Here is your invoice <strong>${object.number}</strong>
+% if object.origin:
+(with reference: ${object.origin} )
+% endif
+amounting in <strong>${object.amount_total} ${object.currency_id.name}</strong>
+from ${object.company_id.name}.
+</p>
+
+    <br/><br/>
+    <center>
+      <a href="${access_url}" style="background-color: #1abc9c; padding: 20px; text-decoration: none; color: #fff; border-radius: 5px; font-size: 16px;" class="o_default_snippet_text">View Invoice</a>
+    </center>
+
+    <br/><br/>
+
+% if object.state=='paid':
+    <p>This invoice is already paid.</p>
+% else:
+    <p>Please remit payment at your earliest convenience.</p>
+% endif
+
+<p>Thank you,</p>
+% if object.user_id and object.user_id.signature:
+    ${object.user_id.signature | safe}
+% endif
+]]></field>
+        </record>
+
+
+        <template id="account_blocked_template">
+            <t t-call="website.layout">
+                <div class="alert alert-danger" role="alert">
+                    <center>Account Blocked: Unfortunately we cannot process your order right now as your account has been blocked, kindly contact the sales rep '<t t-esc="sale_rep"/>'.</center>
+                </div>
+            </t>
+        </template>
+        <template id="credit_limit_template">
+            <t t-call="website.layout">
+                <div class="alert alert-danger" role="alert">
+                    <center>Credit Limit Reached: Unfortunately we cannot process your order right now as you have reached your credit limit, kindly contact your sales rep '<t t-esc="sale_rep"/>'.</center>
+                </div>
+            </t>
+        </template>
+
+        <template id="so_quotation_inherit" name="Product Quotation" inherit_id="website_quote.so_quotation">
+            <!--<div id="modalaccept" position="replace">-->
+	    <xpath expr="//div[@id='modalaccept']/div[1]" position="replace">
+                <!--<div class="modal fade" id="modalaccept" role="dialog" aria-hidden="true">-->
+		<div>
+                <t t-if="account_blocked and not credit_limit_exceeded">
+		    <div class="modal-dialog">                    
+                        <div class="alert alert-danger" role="alert">
+			    <button style="float:right;" class="btn btn-link" data-dismiss="modal">x</button>
+                            <div style="clear:both;"/>
+                            <center>Account Blocked: Unfortunately we cannot process your order right now as your account has been blocked, kindly contact the sales rep '<t t-esc="sale_rep"/>'.</center>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="not account_blocked and credit_limit_exceeded">
+                    <div class="modal-dialog">
+                        <div class="alert alert-danger" role="alert">
+			    <button style="float:right;" class="btn btn-link" data-dismiss="modal">x</button>
+                            <div style="clear:both;"/>
+                            <center>Credit Limit Reached: Unfortunately we cannot process your order right now as you have reached your credit limit, kindly contact your sales rep '<t t-esc="sale_rep"/>'.</center>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="not account_blocked and not credit_limit_exceeded">
+                    <div class="modal-dialog" t-if="not quotation.require_payment and not need_payment">
+                        <form action="/submit_purchase_order" method="POST" id="accept" class="js_accept_json modal-content js_website_submit_form" enctype="multipart/form-data">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="quotation_id" t-att-value="quote_id"/>
+                            <div class="modal-header">
+                                <h4 class="modal-title">Purchase Order Information</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="form-group field-login">
+                                    <label for="po_number" class="control-label" >Purchase Order Number</label>
+                                    <input type="text" name="po_number" t-att-value="NUMBER" id="po_number" class="form-control" required="True"/>
+                                </div>
+                                <div class="form-group field-login">
+                                    <label for="po_attach" class="control-label" >Purchase Order Attachment</label>
+                                    <input type="file" name="po_attach" t-att-value="ATTACHMENT" id="po_attach" class="form-control" required="True"/>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <div class="clearfix oe_login_buttons">
+                                  <button type="submit" t-attf-class="btn btn-primary">Accept Quote</button> or
+                                  <button type="button" class="btn btn-link" data-dismiss="modal" style="padding: 0">Cancel</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </t>
+                </div>
+            <!--</div>-->
+	    </xpath>
+        </template>
+        <template id="purchase_order_update" name="Purchase Order">
+	    <t t-call="website.layout">
+            <div class="alert alert-success" role="alert">
+                <center>Your Purchase Order Information hasbeen updated</center>
+            </div>
+	    </t>
+        </template>
+
+
+</odoo>
+

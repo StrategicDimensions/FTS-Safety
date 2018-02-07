@@ -1,0 +1,66 @@
+<odoo>
+    <!--<template id="external_layout_header_inherit" inherit_id="report.external_layout_header">
+        <xpath expr="//div[@name='company_address']" position="replace">
+            <div class="col-xs-6" name="company_address">
+                <span t-field="company.partner_id"
+                    t-field-options='{"widget": "contact", "fields": ["address","name"], "no_marker": true}'
+                />
+                <t>Registration No. 2010/016520/07</t><br/>
+                <t>VAT No. 4230102438</t><br/>
+                <div style="border-bottom: 1px solid black;"></div>
+            </div>
+        </xpath>
+    </template>-->
+
+
+    <template id="report_purchaseorder_document_inherit" inherit_id="purchase.report_purchaseorder_document">
+	<xpath expr="//table/thead/tr/th[1]" position="before">
+	    <th><strong>Internal Product Code</strong></th>
+	</xpath>
+	<xpath expr="//table/tbody/tr/td[1]" position="before">
+	    <td><t>[<span t-field="line.product_id.default_code"/>] </t><span t-field="line.product_id.name"/></td>
+	</xpath>
+
+	<xpath expr="//div[@class='page']/div[2]/div[1]/div[2]/span" position="before">
+	    <t><font color="red">Delivery To</font></t><br/>
+	</xpath>
+	<xpath expr="//div[@class='page']/div[2]/div[2]" position="replace">
+	       <div class="col-xs-5 col-xs-offset-1">
+		    <!--<div>
+			<span t-field="o.partner_id.name"/><br/>
+		    </div>-->
+		    <strong>Vendor Address:</strong>
+		    <div>
+                        <b><span t-field="o.partner_id.name"/><br/></b>
+			<font color="red"><span t-field="o.partner_id.ref"/></font>
+                    </div>
+                    <div t-field="o.partner_id"
+                        t-options='{"widget": "contact", "fields": ["address","phone", "fax"], "no_marker": True, "phone_icons": True}'
+		    />
+                    <p t-if="o.partner_id.vat">VAT: <span t-field="o.partner_id.vat"/></p>
+                </div>
+	</xpath>
+        <xpath expr="//div[@class='page']/div[1]" position="after">
+            <div>
+                <div class="col-xs-6">
+                    <p><br/><br/><br/></p>
+                </div>
+                <div class="col-xs-6">
+                    <p><br/><br/><br/></p>
+                </div>
+            </div>
+        </xpath>
+	<xpath expr="//div[@class='page']" position="inside">
+            <br/><strong>Key Notes : </strong><br/>
+            <p t-field="o.description"/>
+        </xpath>
+    </template>
+
+    <template id="report_purchasequotation_document_inherit" inherit_id="purchase.report_purchasequotation_document">
+        <xpath expr="//div[@class='page']" position="inside">
+            <br/><strong>Key Notes : </strong><br/>
+            <p t-field="o.description"/>
+        </xpath>
+    </template>
+
+</odoo>

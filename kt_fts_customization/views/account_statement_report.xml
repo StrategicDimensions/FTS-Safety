@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data>
+
+<template id="account_reports.report_followup_line" inherit_id="account_reports.report_financial_line" primary="True">
+    <xpath expr="//tr" position="attributes">
+        <attribute name="t-att-bgcolor">a.get('blocked') and 'LightGray' or 'white'</attribute>
+    </xpath>
+    <xpath expr="//div[@class='dropdown']" position="replace">
+        <a t-if="a['type'] == 'payment' and mode != 'print'">
+            <span style="font-style: italic;" t-att-data-active-id="context.env['account.move.line'].browse(int(a.get('id'))).payment_id.id" data-res-model="account.payment" class="o_account_reports_web_action"><t t-esc="a.get('name')"/></span>
+        </a>
+        <div class="dropdown" t-if="a['type'] == 'unreconciled_aml' and mode != 'print'">
+            <a data-toggle="dropdown">
+                <span style="font-style: italic;" t-att-class="' '.join([a['type'], str(a['id'])])">
+                    <t t-esc="a.get('name')"/>
+                </span>
+                <span class="caret"></span>
+            </a>
+            <t t-call="account_reports.report_financial_footnote_sup" />
+            <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+                <li role="presentation"><a role="menuitem" tabindex="-1" t-att-data-active-id="a.get('action')[1]" t-att-data-res-model="a.get('action')[0]" t-att-data-view-id="a.get('action')[3]" class="o_account_reports_web_action"><t t-esc="a.get('action')[2]" /></a></li>
+                <li role="presentation" t-if="a.get('action')[0] != 'account.move'"><a role="menuitem" tabindex="-1" t-att-data-active-id="a.get('move_id')" data-res-model="account.move" class="o_account_reports_web_action">View Journal Entry</a></li>
+                <li role="presentation"><a role="menuitem" tabindex="-1" class="change_exp_date">Change expected payment date/note</a></li>
+            </ul>
+        </div>
+    </xpath>
+    <xpath expr="//tr/t/t[@t-set='column']" position="after">
+        <t t-set="tooltip" t-value="''" />
+        <t t-if="column == 5 and a['type'] == 'unreconciled_aml' and not context.env.context.get('public')"><t t-set="tooltip" t-value="c[1]" /><t t-set="c" t-value="c[0]" /></t>
+    </xpath>
+    <xpath expr="//tr/t//td/span" position="attributes">
+        <attribute name="t-if">column != 5 or a['type'] != 'unreconciled_aml' or context.env.context.get('public')</attribute>
+    </xpath>
+    <xpath expr="//tr/t/t/td/span" position="after">
+        <span t-att-class='align' t-if="column == 5 and a['type'] == 'unreconciled_aml'">
+            <input t-if="c == False" type="checkbox" name="blocked" value="True" />
+            <input t-if="c == True" type="checkbox" name="blocked" value="True" checked="checked" />
+        </span>
+    </xpath>
+    <xpath expr="//span[@class='annotable']" position="attributes">
+        <attribute name="data-toggle">tooltip</attribute>
+        <attribute name="data-placement">bottom</attribute>
+        <attribute name="t-att-title">tooltip</attribute>
+    </xpath>
+</template>
+
+</data>
+</odoo>
+

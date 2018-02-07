@@ -1,0 +1,111 @@
+from odoo import fields,models,api, _
+from odoo.exceptions import ValidationError
+
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
+from odoo.tools.float_utils import float_compare
+from odoo.addons.procurement.models import procurement
+from odoo.exceptions import UserError
+
+
+
+class StockPicking(models.Model):
+    _inherit = 'stock.picking'
+
+    collection = fields.Selection([('collection','Collection'),('delivery','Delivery')],string="Collection/Delivery")
+    customer_type = fields.Selection([('cod','COD'),('account','Account')],compute="_get_customer_type",string="Customer Type")
+    description = fields.Text('Key Notes')
+
+
+    @api.depends('partner_id')
+    @api.multi
+    def _get_customer_type(self):
+        for obj in self:
+            obj.customer_type = obj.partner_id.account_type
+        return True
+
+
+    @api.multi
+    def do_new_transfer(self):
+	#picking_type = self.env['stock.picking.type'].search([('name','=','Delivery Orders')],limit=1)
+	par_loc_id = self.env['stock.location'].search([('name','=','Partner Locations')],limit=1)
+	vendor_loc_id = self.env['stock.location'].search([('name','=','Vendors'),('location_id','=',par_loc_id.id)],limit=1)
+	if self.picking_type_id.name == 'Delivery Orders' and self.location_dest_id.id != vendor_loc_id.id:
+	    source_doc = self.origin
+	    if ':' in self.origin: 
+		source_doc = self.origin.split(':')[0]
+	    inv_obj = self.env['account.invoice'].search([('partner_shipping_id','=',self.partner_id.id),('origin','=',source_doc)])
+	    
+	    if not inv_obj:
+		inv_objs = self.env['account.invoice'].search([('partner_shipping_id','=',self.partner_id.id)])
+		for inv in inv_objs:
+		    if source_doc in inv.origin:
+			inv_obj = inv
+		
+		if not inv_obj:
+		    raise ValidationError(('Invoice has been not created for this sale order %s')%(source_doc))
+  
+	    for inv in inv_obj:
+	    	if inv.state == 'draft':
+			raise ValidationError(('Invoice has been not validated for this sale order %s')%(source_doc))
+	    #elif inv_obj.partner_id.account_type == 'cod' and inv_obj.state != 'paid':
+            #    raise ValidationError(('Invoice has been not paid for this sale order %s')%(source_doc))
+		
+	
+	
+        for pick in self:
+            pack_operations_delete = self.env['stock.pack.operation']
+            if not pick.move_lines and not pick.pack_operation_ids:
+                raise UserError(_('Please create some Initial Demand or Mark as Todo and create some Operations. '))
+            # In draft or with no pack operations edited yet, ask if we can just do everything
+            if pick.state == 'draft' or all([x.qty_done == 0.0 for x in pick.pack_operation_ids]):
+                # If no lots when needed, raise error
+                picking_type = pick.picking_type_id
+                if (picking_type.use_create_lots or picking_type.use_existing_lots):
+                    for pack in pick.pack_operation_ids:
+                        if pack.product_id and pack.product_id.tracking != 'none':
+                            raise UserError(_('Some products require lots/serial numbers, so you need to specify those first!'))
+                view = self.env.ref('stock.view_immediate_transfer')
+                wiz = self.env['stock.immediate.transfer'].create({'pick_id': pick.id})
+                # TDE FIXME: a return in a loop, what a good idea. Really.
+                return {
+                    'name': _('Immediate Transfer?'),
+                    'type': 'ir.actions.act_window',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'stock.immediate.transfer',
+                    'views': [(view.id, 'form')],
+                    'view_id': view.id,
+                    'target': 'new',
+                    'res_id': wiz.id,
+                    'context': self.env.context,
+                }
+            # Check backorder should check for other barcodes
+            if pick.check_backorder():
+                view = self.env.ref('stock.view_backorder_confirmation')
+                wiz = self.env['stock.backorder.confirmation'].create({'pick_id': pick.id})
+                # TDE FIXME: same reamrk as above actually
+                return {
+                    'name': _('Create Backorder?'),
+                    'type': 'ir.actions.act_window',
+                    'view_type': 'form',
+                    'view_mode': 'form',
+                    'res_model': 'stock.backorder.confirmation',
+                    'views': [(view.id, 'form')],
+                    'view_id': view.id,
+                    'target': 'new',
+                    'res_id': wiz.id,
+                    'context': self.env.context,
+                }
+            for operation in pick.pack_operation_ids:
+                if operation.qty_done < 0:
+                    raise UserError(_('No negative quantities allowed'))
+                if operation.qty_done > 0:
+                    operation.write({'product_qty': operation.qty_done})
+                else:
+                    pack_operations_delete |= operation
+            if pack_operations_delete:
+                pack_operations_delete.unlink()
+        self.do_transfer()
+        return
+
+    

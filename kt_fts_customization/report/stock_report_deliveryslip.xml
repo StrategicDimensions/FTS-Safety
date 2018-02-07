@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--<template id="report_delivery_document_inherit_kt_kmq" inherit_id="sale_stock.report_delivery_document_inherit_sale_stock">
+        <xpath expr="/div" position="replace">      
+            <div class="row" t-if="o.sale_id.client_order_ref">
+                <div class="col-xs-4 pull-right">
+                    <b><p t-field="o.sale_id.partner_id.ref"/></b>
+                    <strong>Customer Reference:</strong>
+                    <p t-field="o.sale_id.client_order_ref"/>
+                </div>
+            </div>      
+        </xpath>
+    </template>-->
+
+
+<template id="sale_stock.report_delivery_document_inherit_sale_stock" inherit_id="stock.report_delivery_document">
+        <xpath expr="//div[@name='customer_address']" position="after">
+	    <div class="row">
+                <div class="col-xs-4 pull-right">
+                    <strong><p t-field="o.partner_id.ref"/></strong>
+                </div>
+            </div>
+            <div class="row" t-if="o.sale_id.client_order_ref">
+                <div class="col-xs-4 pull-right">
+                    <strong>Customer Reference:</strong>
+                    <p t-field="o.sale_id.client_order_ref"/>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+
+    <template id="report_delivery_document_inh_kt_kmq" inherit_id="stock.report_delivery_document">
+	<xpath expr="//h2" position="replace">
+            <h2>
+                Delivery Note <span t-field="o.name"/>
+            </h2>
+        </xpath>
+        <xpath expr="//table[1]/thead/tr" position="inside">
+            <th><strong>Delivery Method</strong></th>
+	    <th><strong>Customer Type</strong></th>
+        </xpath>
+        <xpath expr="//table[1]/tbody/tr" position="inside">
+            <td><span t-field="o.collection"/></td>
+	    <td><span t-field="o.customer_type"/></td>
+        </xpath>
+        <xpath expr="//div[@class='page']" position="inside">
+	    <p><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/></p>
+	    <br/><strong>Key Notes : </strong><br/>
+            <p t-field="o.description"/>
+            <p><b>Note</b> : All goods remain the property of FTS Safety until paid for in full</p><br/>
+            <div class="row">
+                <div class="col-xs-5 pull-left">
+                    <t>Received in good order</t><br/>
+                    <t><![CDATA[&nbsp;]]></t><br/>
+                    <t>Signature</t>
+                </div>
+                <div class="col-xs-5 pull-right">
+                    <table>
+                        <tr><td>Date</td><td><![CDATA[&nbsp;]]>:<![CDATA[&nbsp;]]></td><td>_____________________________</td></tr>
+                        <tr><td colspan="3"><t><![CDATA[&nbsp;]]></t></td></tr>
+                        <tr><td>Name</td><td><![CDATA[&nbsp;]]>:<![CDATA[&nbsp;]]></td><td>_____________________________</td></tr>
+                    </table>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="report_picking_inherit" inherit_id="stock.report_picking">
+        <xpath expr="//div[@class='page']" position="inside">
+            <br/><strong>Key Notes : </strong><br/>
+            <p t-field="o.description"/>
+        </xpath>
+    </template>
+</odoo>
+

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+	<template id="payu_acquirer_button">
+        <form t-if="acquirer" action="/shop/redirect_payu" method="post" target="_self">
+	<!--<form t-if="acquirer" t-att-action="tx_url" method="post" target="_self">-->
+            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+            <t t-if="return_url">
+                <input type="hidden" name="return_url" t-att-value="return_url"/>
+            </t>
+            <input type="hidden" name="reference" t-att-value="reference"/>
+            <input type="hidden" name="amount" t-att-value="amount"/>
+            <input type="hidden" name="currency" t-att-value="currency.name"/>
+            <input type="hidden" name="item_name" t-att_value="item_name"/>
+	    <input type="hidden" name="email" t-att_value="email"/>
+	    <input type="hidden" name="first_name" t-att-value="first_name"/>
+	    <input type="hidden" name="last_name" t-att-value="last_name"/>
+	    <input type="hidden" name="phone" t-att-value="phone"/>
+            <!-- submit -->
+            <button type="submit" width="100px" t-att-class="submit_class">
+                <img t-if="not submit_txt" src="/payment_payu_com/static/src/img/payu_icon.png"/>
+                <span t-if="submit_txt"><t t-esc="submit_txt"/> <span class="fa fa-long-arrow-right"/></span>
+            </button>
+        </form>
+        </template>
+
+
+    	<!--<template id="payu_button">	
+<form action="redirect_payu" method="post"  target="_self">
+  <input name="return_url" type="hidden" t-att-value="tx_values['return']" />
+   <input type='hidden' name='li_0_type' t-att-value="tx_values['reference']" />
+<input type='hidden' name='li_0_name' t-att-value="tx_values['item_name']" />
+<input type='hidden' name='li_0_price' t-att-value="tx_values['amount']" />
+<input type='hidden' name='li_0_quantity' value='1' />
+<input type='hidden' name='c_currency_id' t-att-value="tx_values['currency'].name" />
+  <input name="card_holder_name" type="hidden" t-att-value="tx_values['partner'].name"/>
+  <input name="street_address" type="hidden" value="123 Test Address"/>
+  <input name="street_address2" type="hidden" value="Suite 200"/>
+  <input name="city" type="hidden" t-att-value="tx_values['city']"/>
+  <input name="state" type="hidden" t-att-value="tx_values['state']"/>
+  <input name="zip" type="hidden" value="43228"/>
+  <input name="country" type="hidden" t-att-value="tx_values['country']"/>
+  <input name="email" type="hidden" t-att-value="tx_values['email']"/>
+  <input name="phone" type="hidden" value="614-921-2450"/>
+  <input name="ship_name" type="hidden" t-att-value="tx_values['partner'].name"/>
+  <input name="ship_street_address" type="hidden" value="1234 Address Road"/>
+  <input name="ship_street_address2" type="hidden" value="Apartment 123"/>
+  <input name="ship_city" type="hidden" t-att-value="tx_values['city']"/>
+  <input name="ship_state" type="hidden" t-att-value="tx_values['state']"/>
+  <input name="ship_zip" type="hidden" value="43235"/>
+  <input name="ship_country" type="hidden" t-att-value="tx_values['country']"/>
+  <input type='hidden' name='purchase_step' value='payment-method' />
+  <input name="paypal_direct" type="hidden" value="Y"/>
+       <button type="submit" width="100px" t-att-class="submit_class">
+            <img t-if="not submit_txt" src="/payment_payu_com/static/src/img/payu_logo.jpg"/>
+                  <span t-if="submit_txt"><t t-esc="submit_txt"/> <span class="fa fa-long-arrow-right"/></span>
+        </button>
+</form>
+    </template>-->
+
+   <template id="unsuccessful">
+  <t t-call="website.layout">
+      <t t-set="additional_title">Shop - Confirmed</t>
+      <div id="wrap">
+        <div class="container oe_website_sale">
+
+          <ul class="wizard pull-right">
+              <li class="text-muted">Review Order<span class="chevron"></span></li>
+              <li class="text-muted">Shipping &amp; Billing<span class="chevron"></span></li>
+              <li class="text-muted">Payment<span class="chevron"></span></li>
+              <li class="text-primary">Confirmation<span class="chevron"></span></li>
+          </ul>
+          <div class="row">
+              <div class="col-md-8 oe_cart">
+                  <h4>Oops:</h4><br></br>
+                  <p>Payment Unsuccessful!<br></br><br></br>
+                  Please repeat the process and choose EFT as your payment method and we will send you a proforma invoice with our banking details for you to make the payment for your order. Once your payment is received your order will be processed immediately;
+                  <br></br><br></br>
+                  Thank you</p>
+                  <div class="clearfix"/>
+                  <div class="oe_structure"/>
+              </div>
+              <div class="col-md-3 col-md-offset-1 text-muted" id="right_column">
+                <h4>Bill To:</h4>
+                <div t-field="order.partner_invoice_id" t-field-options='{
+                    "widget": "contact",
+                    "fields": ["address", "name", "phone", "email"]
+                    }'/>
+                <t>
+                    <h4 class="mt32">Ship To:</h4>
+                    <t t-if="order.partner_shipping_id and order.partner_shipping_id.id != order.partner_invoice_id.id">
+                      <div t-field="order.partner_shipping_id" t-field-options='{
+                        "widget": "contact",
+                        "fields": ["address", "name", "phone"]
+                        }'/>
+                    </t>
+                    <address t-if="order.partner_shipping_id.id == order.partner_invoice_id.id">Ship to the same address</address>
+                </t>
+              </div>
+          </div>
+
+        </div>
+        <div class="oe_structure"/>
+      </div>
+
+  </t>
+</template>
+
+    </data>
+</openerp>
+
+                
